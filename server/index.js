@@ -2,13 +2,18 @@
 const express= require("express")
 const app = express()
 const server = require("http").createServer(app);
-const {client,auth,get} = require("./redis");
+const {client,auth,set,get,exists} = require("./redis");
 
 /* init app*/
 
 (async ()=>{
     await auth(client)
-    const x =  await get("iphone")
+    /** We store a counter for the total users and increment it on each register */
+    const totalUsersKeyExist = await exists("total_users");
+    if(!totalUsersKeyExist){
+        // /** This counter is used for the id */
+        await set("total_users", 0)
+    }
 })()
 
 app.get("/", (req, res) => {
