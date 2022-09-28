@@ -24,10 +24,27 @@ const set = async function(key,value){
     return await client.set(key,value)
 }
 
+const incr = async function (key){
+    return await client.incr(key)
+}
+
+// Hash
+const hset = async function(key,values){
+    return await client.hSet(key,values)
+}
+
+// SET
+const sadd = async function(key,value){
+    return await client.sAdd(key,value)
+}
+
 module.exports = {
     client,
     auth,
     set,
     get,
+    incr,
+    hset,
+    sadd,
     exists
 }

@@ -3,6 +3,7 @@ const express= require("express")
 const app = express()
 const server = require("http").createServer(app);
 const {client,auth,set,get,exists} = require("./redis");
+const {createUser} = require("./utils");
 
 /* init app*/
 
@@ -13,11 +14,17 @@ const {client,auth,set,get,exists} = require("./redis");
     if(!totalUsersKeyExist){
         // /** This counter is used for the id */
         await set("total_users", 0)
+
     }
 })()
 
+app.get("/test-create",async (req,res)=>{
+    await createUser("tom","123")
+    res.send("ok");
+})
 app.get("/", (req, res) => {
     res.send("hello there");
+
 });
 
 app.get("/api", (req, res) => {
