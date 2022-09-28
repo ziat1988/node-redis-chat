@@ -9,11 +9,15 @@ const {client,auth,get} = require("./redis");
 (async ()=>{
     await auth(client)
     const x =  await get("iphone")
-    console.log(x)
 })()
 
 app.get("/", (req, res) => {
     res.send("hello there");
+});
+
+app.get("/api", (req, res) => {
+    console.log('api call')
+    res.json({ message: "Hello from server!" });
 });
 
 const PORT = process.env.PORT || 8000;
