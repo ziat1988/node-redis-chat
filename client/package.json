@@ -9,8 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^0.27.2",
+    "bootstrap": "^5.2.1",
+    "dayjs": "^1.11.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-bootstrap": "^2.5.0",
+    "react-dom": "^18.2.0",
+    "socket.io-client": "^4.5.2",
+    "styled-components": "^5.3.6",
+    "use-http": "^1.0.27",
+    "zustand": "^4.1.1"
   },
   "devDependencies": {
     "@types/react": "^18.0.17",
@@ -18,5 +26,4 @@
     "@vitejs/plugin-react": "^2.1.0",
     "vite": "^3.1.0"
   }
-
 }

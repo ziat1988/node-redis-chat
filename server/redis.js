@@ -28,6 +28,10 @@ const incr = async function (key){
     return await client.incr(key)
 }
 
+const hgetall = async function(key){
+    return await client.hGetAll(key)
+}
+
 // Hash
 const hset = async function(key,values){
     return await client.hSet(key,values)
@@ -38,6 +42,17 @@ const sadd = async function(key,value){
     return await client.sAdd(key,value)
 }
 
+const zadd= async function(key,score,value){
+    return await client.zAdd(key,{score,value})
+}
+
+// sorted set
+
+const zrangewithscore = async function(key, min=0, max=1){
+    return await client.zRangeWithScores(key,min,max)
+   // return await client.zRangeByScore(key, min, max)
+}
+
 module.exports = {
     client,
     auth,
@@ -46,5 +61,8 @@ module.exports = {
     incr,
     hset,
     sadd,
-    exists
+    hgetall,
+    exists,
+    zadd,
+    zrangewithscore
 }

@@ -25,5 +25,6 @@ const createUser = async(username,password)=>{
 }
 
 module.exports = {
-    createUser
+    createUser,
+    makeUsernameKey
 }

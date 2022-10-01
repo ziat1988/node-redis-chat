@@ -1,22 +1,20 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useRef, useState} from 'react'
+import axios from 'axios';
+
+
+import './reset.css'
 import './App.css'
+import Login from "./components/Login";
+import Chat from "./components/Chat";
+import useUserStore from "./store/useUserStore.jsx";
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 function App() {
-    const [data, setData] = useState(null);
-
-    useEffect(()=>{
-        fetch('/api')
-            .then(res=>res.json())
-            .then(data=> setData(data.message))
-
-    },[])
-
-
-
+    const userLogged = useUserStore(state=>state.userLogged);
     return (
         <div className="App">
-            this is vite react
-            <p>{!data ? "Loading..." : data}</p>
+            {userLogged ? <Chat /> : <Login />}
         </div>
     )
 }
