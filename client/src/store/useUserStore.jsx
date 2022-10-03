@@ -1,11 +1,8 @@
 import create from 'zustand';
 
-const demoUser = {
-    id:1,
-    username:"tom"
-}
+
 const useUserStore = create((set)=>({
-    userLogged: demoUser,
+    userLogged: null,
     setUser:(user)=>set(state=>({...state,userLogged:user})),
 
 }))

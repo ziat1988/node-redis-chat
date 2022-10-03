@@ -1,25 +1,22 @@
-import React, {useEffect, useState} from 'react';
-import ChatMessageItem from "./ChatMessageItem.jsx";
+import React, {useCallback, useEffect, useState} from 'react';
 import {useFetch} from "use-http";
+import io from 'socket.io-client';
+
 
 import useUserStore from "../../../store/useUserStore.jsx";
-
-import io from 'socket.io-client';
 import useMessageStore from "../../../store/useMessageStore.jsx";
+import ChatMessageItem from "./ChatMessageItem.jsx";
+
 const socket = io("http://localhost:8000");
 
 function ChatMessages(props) {
-    // TODO request messages from BD
+
+    const [messages,setMessages] = useState([]);
     const [isConnected, setIsConnected] = useState(socket.connected);
-    const options = {} // these options accept all native `fetch` options
-    // the last argument below [] means it will fire onMount (GET by default)
-    const { loading, error, data = [] } = useFetch('/api/messages', options, [])
+
+    const { loading, error, response,get } = useFetch()
 
     const userLogged = useUserStore(state=>state.userLogged);
-
-    const newMsg = useMessageStore(state=>state.newMsg);
-
-    const [newChat,setNewChat] = useState(null)
 
     useEffect(()=>{
         socket.on('connect', () => {
@@ -29,8 +26,8 @@ function ChatMessages(props) {
             setIsConnected(false);
         });
 
-        socket.on('chat event', function(msg) {
-
+        socket.on('room:1:2', function(msg) {
+            setMessages(prevMessages=>[...prevMessages,msg])
         });
         return () => {
             socket.off('connect');
@@ -39,16 +36,31 @@ function ChatMessages(props) {
 
     },[])
 
+
+
+
     useEffect(()=>{
-        setNewChat(newMsg)
-    },[newMsg])
+
+        async function fetchData(){
+            const data = await get('/api/messages');
+            if(response.ok){
+                setMessages(data)
+            }
+        }
+
+        fetchData();
+    },[])
+
 
     return (
         <div>
+
             {<p><small> you are {isConnected? 'connected to socket.io' : ' not connected yet!' }</small></p>}
             <ul>
-                {data.length > 0 && data.map(item=> <ChatMessageItem userLoggedId = {userLogged.id} data={item} key={item.score}/>)}
-                {newChat && <ChatMessageItem userLoggedId={userLogged.id} data={newChat} key={newChat.score}/>}
+                {messages.length > 0 && messages.map(item=> {
+                    const objItem = JSON.parse(item);
+                    return <ChatMessageItem userLoggedId = {userLogged.id} data={objItem} key={objItem.date}/>
+                })}
             </ul>
         </div>
     );

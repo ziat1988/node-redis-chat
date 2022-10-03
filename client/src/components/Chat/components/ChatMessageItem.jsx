@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from "styled-components";
-import useUserStore from "../../../store/useUserStore.jsx";
 import dayjs from "dayjs";
 const ItemLi = styled.li`
   
@@ -14,15 +13,11 @@ const ItemLi = styled.li`
 `
 function ChatMessageItem({data,userLoggedId}) {
     console.log('data in item:',data)
-
-    const valueObj = JSON.parse(data.value)
-    const {from,message,roomId,date} = valueObj;
-
-    console.log(from, userLoggedId)
+    const {from,message,roomId,date} = data;
 
     return (
         <React.Fragment>
-            <ItemLi className={from === userLoggedId ? 'right' : 'left'}>
+            <ItemLi className={+from === +userLoggedId ? 'right' : 'left'}>
                 {message}
                 <p><small>{dayjs.unix(date).format("DD/MM/YYYY")}</small></p>
             </ItemLi>

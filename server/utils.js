@@ -13,6 +13,7 @@ const createUser = async(username,password)=>{
     const hashedPassword = await bcrypt.hash(password, 10);
     const nextId = await incr("total_users");
 
+    console.log('nextid:',nextId);
     const userKey = `user:${nextId}`;
     await set(usernameKey, userKey);
     await hset(userKey, ["username", username, "password", hashedPassword]);
