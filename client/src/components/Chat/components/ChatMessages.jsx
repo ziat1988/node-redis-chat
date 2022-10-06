@@ -1,61 +1,34 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {useFetch} from "use-http";
-import io from 'socket.io-client';
-
 
 import useUserStore from "../../../store/useUserStore.jsx";
 import useMessageStore from "../../../store/useMessageStore.jsx";
 import ChatMessageItem from "./ChatMessageItem.jsx";
+import useRoomStore from "../../../store/useRoomStore.jsx";
 
-const socket = io("http://localhost:8000");
 
 function ChatMessages(props) {
-
     const [messages,setMessages] = useState([]);
-    const [isConnected, setIsConnected] = useState(socket.connected);
-
     const { loading, error, response,get } = useFetch()
-
     const userLogged = useUserStore(state=>state.userLogged);
+    const idRoomCurrent = useRoomStore(state=>state.roomCurrent)
+    console.log('id room current:',idRoomCurrent)
+    // TODO: determine users in chat: userlogged + other users
 
     useEffect(()=>{
-        socket.on('connect', () => {
-            setIsConnected(true);
-        });
-        socket.on('disconnect', () => {
-            setIsConnected(false);
-        });
-
-        socket.on('room:1:2', function(msg) {
-            setMessages(prevMessages=>[...prevMessages,msg])
-        });
-        return () => {
-            socket.off('connect');
-            socket.off('disconnect');
-        };
-
-    },[])
-
-
-
-
-    useEffect(()=>{
-
         async function fetchData(){
-            const data = await get('/api/messages');
+            // get id user current  + id other user
+            const data = await get(`/api/room/${idRoomCurrent}/messages`);
             if(response.ok){
                 setMessages(data)
             }
         }
-
         fetchData();
-    },[])
+    },[idRoomCurrent])
 
 
     return (
         <div>
-
-            {<p><small> you are {isConnected? 'connected to socket.io' : ' not connected yet!' }</small></p>}
             <ul>
                 {messages.length > 0 && messages.map(item=> {
                     const objItem = JSON.parse(item);

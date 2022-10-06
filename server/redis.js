@@ -7,6 +7,9 @@ const client = new Redis({
     db: 1, // Defaults to 0
 })
 
+const smembers= async function(key){
+    return client.smembers(key);
+}
 
 const exists = async function (key){
     return client.exists(key);
@@ -21,6 +24,15 @@ const set = async function(key,value){
 
 const incr = function (key){
     return client.incr(key);
+}
+
+
+const hget = function(key,field){
+    return client.hget(key,field)
+}
+
+const hmget = async function(key,key2){
+    return client.hmget()
 }
 
 const hgetall = async function(key){
@@ -52,6 +64,8 @@ module.exports = {
     client,
     //connectRedis,
     //auth,
+    hget,
+    smembers,
     set,
     get,
     incr,

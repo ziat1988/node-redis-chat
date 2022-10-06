@@ -11,6 +11,18 @@ const ItemLi = styled.li`
     text-align: right;
   }
 `
+
+// TODO:
+const getUserName=(id)=>{
+    const users = {
+        1: "solo",
+        2: "dang",
+        3: "tom"
+    }
+
+    return users[id]
+}
+
 function ChatMessageItem({data,userLoggedId}) {
     console.log('data in item:',data)
     const {from,message,roomId,date} = data;
@@ -18,7 +30,8 @@ function ChatMessageItem({data,userLoggedId}) {
     return (
         <React.Fragment>
             <ItemLi className={+from === +userLoggedId ? 'right' : 'left'}>
-                {message}
+                <p> <strong>{getUserName(from)}</strong></p>
+                <p> {message}</p>
                 <p><small>{dayjs.unix(date).format("DD/MM/YYYY")}</small></p>
             </ItemLi>
         </React.Fragment>

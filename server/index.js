@@ -17,7 +17,7 @@ const io = new Server(server,{
 
 const {createUser,makeUsernameKey} = require("./utils");
 
-const {client:redisClient,set,get,hgetall,zrangewithscore,zadd,exists} = require("./redis");
+const {client:redisClient,set,get,hgetall,hget,zrangewithscore,zadd,exists,smembers} = require("./redis");
 
 const sessionMiddleware = session({
     store: new RedisStore({ client: redisClient }),
@@ -79,24 +79,48 @@ io.use((socket, next) => {
         await set("total_users", 0)
 
     }
-})()
 
-io.on('connection',socket => {
-    console.log('a user connected')
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
+    io.on('connection',socket => {
+        //   console.log('a user connected')
+        socket.on('disconnect', () => {
+          //  console.log('user disconnected');
+        });
+
+        socket.on("room.join", (id) => {
+            console.log("room join id:",id)
+            socket.join(`room:${id}`);
+        });
+
+        socket.on('message', async (msg)=>{
+            console.log('server recieved message from js:',msg)
+            const messageString = JSON.stringify(msg);
+            const roomKey = `room:${msg.roomId}`;
+            console.log('room key:',roomKey)
+            // show.room ?
+
+            /** We've got a new message. Store it in db, then send back to the room. */
+            //io.emit('chat event', msg);
+            await zadd(roomKey, msg.date, messageString);
+            io.in(roomKey).emit("message", msg)
+        })
+    })
+
+    io.of("/").adapter.on("create-room", (room) => {
+        console.log(`room ${room} was created`);
     });
 
-    socket.on('chat event', msg=>{
-        console.log('server recieved message from js:',msg)
-        io.emit('chat event', msg);
-    })
-})
+    io.of("/").adapter.on("join-room", (room, id) => {
+        console.log(`socket ${id} has joined room ${room}`);
+    });
+
+})()
+
+
 
 app.use(bodyParser.json());
 
 app.get("/test-create",async (req,res)=>{
-    await createUser("solo","123")
+    await createUser("tom","123")
     res.send("ok");
 })
 app.get("/", (req, res) => {
@@ -124,15 +148,49 @@ app.get("/api/get-user-session",(req,res)=>{
     return res.json(null)
 })
 
-
-app.get("/api/messages",auth,async (req,res)=>{
-    // TODO: get message for user id in specifique room
-    // check room existe
+/** Fetch messages from a selected room */
+app.get("/api/room/:id/messages",auth,async (req,res)=>{
+    // TODO: get message for user id in specifique room id with form 1:2
+    // TODO:  check room existe
     //const x = await exists('room:1:2');
-    const data = await zrangewithscore("room:1:2",0,50);
+
+    const roomId = req.params.id;
+    const offset = +req.query.offset || 0;
+    const size = +req.query.size || 50;
+
+    console.log(roomId);
+    const data = await zrangewithscore(`room:${roomId}`,offset,size);
     return res.json(data)
 })
 
+/** Get rooms for the selected user.*/
+app.get(`/api/rooms/:userId`,auth, async (req,res)=>{
+    const rooms = [];
+    const userId = req.params.userId;
+    const roomIds = await smembers(`user:${userId}:rooms`);
+    console.log(roomIds);
+
+    for (let roomId of roomIds){
+        if(+roomId === 0){
+            continue;
+        }
+        const userIds = roomId.split(":");
+        const otherUsers = userIds.filter(item=>+item !== +userId);
+        const otherId = otherUsers[0];
+        //TODO: many users ex groups can be happen
+        rooms.push({
+            id: roomId,
+            names: [await hget(`user:${userIds[0]}`, "username"), await hget(`user:${userIds[1]}`, "username")],
+            otherUsers: [{id: otherId,username: await hget(`user:${otherId}`,"username")}]
+        })
+    }
+    console.log('rooms here:',rooms);
+
+    res.json(rooms);
+})
+
+
+// to remove
 app.post("/api/messages",auth,async (req,res)=>{
     console.log(req.body)
     // check user logged in
@@ -149,7 +207,7 @@ app.post("/api/messages",auth,async (req,res)=>{
 
     // convert to string
     const stringObjMsg = JSON.stringify(objMsg);
-    const result = await zadd("room:1:2",nowTS,stringObjMsg);
+    const result = await zadd(`room:${objMsg.roomId}`,nowTS,stringObjMsg);
 
     if(result === 1){
         // io broadcast msg
@@ -158,6 +216,9 @@ app.post("/api/messages",auth,async (req,res)=>{
             socket.broadcast.emit("room:1:2",stringObjMsg);
         });
         */
+
+        // use room
+       // io.to('room:1:2').emit(stringObjMsg);
 
         io.emit("room:1:2",stringObjMsg);
 
@@ -184,13 +245,15 @@ app.post('/api/login',async(req,res)=>{
     if(userExists){
         const userKey = await get(usernameKey);
         const dataUserExist = await hgetall(userKey);
+        try{
+            if(await bcrypt.compare(password,dataUserExist.password)){
+                const user = { id: userKey.split(":").pop(), username };
+                req.session.user = user;
+                return res.status(200).json(user);
+            }
+        }catch (e){
 
-        if(await bcrypt.compare(password,dataUserExist.password)){
-            const user = { id: userKey.split(":").pop(), username };
-            req.session.user = user;
-            return res.status(200).json(user);
         }
-
     }
 
     return res.status(401).json({message: "Invalid username or password"})
