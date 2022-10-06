@@ -1,8 +1,8 @@
-import create from "zustand";
+import create from 'zustand';
 
-const useMessageStore = create(set=>({
+const useMessageStore = create((set)=>({
     newMsg: null,
-    setNewMsg:(msg)=>set(state=>({...state,newMsg:msg}))
+    setNewMsg:(msg)=>set(state=>({...state,newMsg:msg})),
 }))
 
 export default useMessageStore;

@@ -16,6 +16,8 @@ function ChatList(props) {
         if(data.length > 0){
             // TODO: first room will be sort by last message
             setRoomCurrent(data[0].id)
+        }else{
+            setRoomCurrent(null)
         }
     },[data])
 

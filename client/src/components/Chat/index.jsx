@@ -2,11 +2,11 @@ import React, {useEffect, useRef, useState} from 'react';
 import styled from "styled-components";
 import useUserStore from "../../store/useUserStore.jsx";
 import ChatMessages from "./components/ChatMessages.jsx";
-import useMessageStore from "../../store/useMessageStore.jsx";
 import useSocket from "../../hooks/useSocket.jsx";
 import ChatList from "./components/ChatList/ChatList.jsx";
 import dayjs from "dayjs";
 import useRoomStore from "../../store/useRoomStore.jsx";
+import Logout from "../Logout";
 
 
 const ChatWrapper = styled.div`
@@ -26,6 +26,8 @@ function Index(props) {
             socketRef.current.emit("room.join",currentRoomId);
         }
     },[currentRoomId])
+
+
     const handleSubmit = async (e)=>{
         e.preventDefault();
         // construction object msg
@@ -37,12 +39,14 @@ function Index(props) {
         };
 
         socketRef.current.emit("message",objMsg);
-
+        refTexInput.current.value="";
     }
 
     return (
         <ChatWrapper>
             <h3>Hello {userLogged.username}, id: {userLogged.id} is {connected? 'connected': 'not connected'}</h3>
+
+            <Logout />
             <div className={'row'}>
                 <div className={'col col-md-4'}>
                     <ChatList />

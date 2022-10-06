@@ -101,7 +101,7 @@ io.use((socket, next) => {
             /** We've got a new message. Store it in db, then send back to the room. */
             //io.emit('chat event', msg);
             await zadd(roomKey, msg.date, messageString);
-            io.in(roomKey).emit("message", msg)
+            io.in(roomKey).emit("message", messageString)
         })
     })
 
@@ -190,47 +190,7 @@ app.get(`/api/rooms/:userId`,auth, async (req,res)=>{
 })
 
 
-// to remove
-app.post("/api/messages",auth,async (req,res)=>{
-    console.log(req.body)
-    // check user logged in
-    const userLogged= req.session.user;
 
-    const nowTS = dayjs().unix();
-    // save msg to DB, need id user in session + id user target
-    const objMsg = {
-        from:userLogged.id,
-        date: nowTS,
-        message: req.body.message,
-        roomId:"1:2"
-    }
-
-    // convert to string
-    const stringObjMsg = JSON.stringify(objMsg);
-    const result = await zadd(`room:${objMsg.roomId}`,nowTS,stringObjMsg);
-
-    if(result === 1){
-        // io broadcast msg
-        /*
-        io.on("connection", (socket) => {
-            socket.broadcast.emit("room:1:2",stringObjMsg);
-        });
-        */
-
-        // use room
-       // io.to('room:1:2').emit(stringObjMsg);
-
-        io.emit("room:1:2",stringObjMsg);
-
-        return res.json(stringObjMsg);
-    }
-
-
-
-    return res.status(400).json({message: "Msg can not insert to DB"})
-
-
-})
 /* Login  TODO: Register */
 
 app.post('/api/login',async(req,res)=>{
@@ -258,6 +218,12 @@ app.post('/api/login',async(req,res)=>{
 
     return res.status(401).json({message: "Invalid username or password"})
 });
+
+
+app.post("/api/logout",auth,(req,res)=>{
+    req.session.destroy(()=>{});
+    return res.sendStatus(200)
+})
 
 const PORT = process.env.PORT || 8000;
 
