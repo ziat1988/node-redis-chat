@@ -4,6 +4,7 @@ import {login} from "../../api.js";
 import useUserStore from "../../store/useUserStore.jsx";
 import useAlertStore from "../../store/useAlertStore.jsx";
 import ToastAlert from "../Toast/InfoMessage";
+import {useNavigate} from "react-router-dom";
 
 
 const FormWrapper = styled.div`
@@ -18,14 +19,18 @@ function Index(props) {
     const setUser= useUserStore(state=>state.setUser);
     const setError = useAlertStore(state=>state.setError);
     const error = useAlertStore(state=>state.error);
+   // const navigate = useNavigate();
+
+    const userCurrent = useUserStore(state=>state.userLogged);
 
     const handleSubmit = (e)=>{
+        console.log('vo day')
         e.preventDefault();
 
         login(refUsername.current.value,refPassword.current.value)
             .then(res=>{
                 setUser(res.data)
-
+                //navigate("/chat")
             })
             .catch(err=>{
                 console.log('error here', err)

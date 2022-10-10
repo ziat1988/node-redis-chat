@@ -73,7 +73,6 @@ io.use((socket, next) => {
 
     /** We store a counter for the total users and increment it on each register */
     const totalUsersKeyExist = await exists("total_users");
-    console.log(totalUsersKeyExist)
     if(!totalUsersKeyExist){
         // /** This counter is used for the id */
         await set("total_users", 0)
@@ -81,10 +80,13 @@ io.use((socket, next) => {
     }
 
     io.on('connection',socket => {
-        //   console.log('a user connected')
+        console.log('a user connected')
         socket.on('disconnect', () => {
-          //  console.log('user disconnected');
+            console.log('user disconnected');
+           // socket.rooms.size === 0
+           // socket.leave()
         });
+
 
         socket.on("room.join", (id) => {
             console.log("room join id:",id)
@@ -92,10 +94,10 @@ io.use((socket, next) => {
         });
 
         socket.on('message', async (msg)=>{
-            console.log('server recieved message from js:',msg)
+           // console.log('server recieved message from js:',msg)
             const messageString = JSON.stringify(msg);
             const roomKey = `room:${msg.roomId}`;
-            console.log('room key:',roomKey)
+            console.log('room key:',roomKey, "message:",msg)
             // show.room ?
 
             /** We've got a new message. Store it in db, then send back to the room. */
@@ -105,6 +107,10 @@ io.use((socket, next) => {
         })
     })
 
+    // io.of("/").adapter.on("leave-room", (room,id) => {
+    //     console.log(`room ${room} was leave!!!`);
+    // });
+    /*
     io.of("/").adapter.on("create-room", (room) => {
         console.log(`room ${room} was created`);
     });
@@ -112,6 +118,7 @@ io.use((socket, next) => {
     io.of("/").adapter.on("join-room", (room, id) => {
         console.log(`socket ${id} has joined room ${room}`);
     });
+    */
 
 })()
 
@@ -141,6 +148,7 @@ app.post("/api/post", async (req, res) => {
 /** The request the client sends to check if it has the user is cached. */
 app.get("/api/get-user-session",(req,res)=>{
     const {user} = req.session;
+    console.log('req session:',req.session)
     if(user){
         return res.json(user)
     }
@@ -158,8 +166,9 @@ app.get("/api/room/:id/messages",auth,async (req,res)=>{
     const offset = +req.query.offset || 0;
     const size = +req.query.size || 50;
 
-    console.log(roomId);
+    console.log('room id:',roomId);
     const data = await zrangewithscore(`room:${roomId}`,offset,size);
+    console.log('data in server:',data)
     return res.json(data)
 })
 
@@ -221,6 +230,7 @@ app.post('/api/login',async(req,res)=>{
 
 
 app.post("/api/logout",auth,(req,res)=>{
+
     req.session.destroy(()=>{});
     return res.sendStatus(200)
 })

@@ -1,54 +1,54 @@
-import {useEffect, useRef, useState} from "react";
 import io from "socket.io-client";
-import useMessageStore from "../store/useMessageStore.jsx";
+import {useEffect, useRef, useState} from "react";
+import useUserStore from "../store/useUserStore.jsx";
 
-const useSocket = ()=>{
+const test = io("http://localhost:8000")
+const x = io("http://localhost:8000")
+const useSocket = (userLogged)=>{
+
+  //  console.log(test);
+   // console.log(x)
+
     const [connected, setConnected] = useState(false);
-    /** First of all it's necessary to handle the socket io connection */
-    const socketRef = useRef(null);
-    const socket = io("http://localhost:8000");
+    const [socket,setSocket] = useState(null)
+    //const userLogged = useUserStore(state=>state.userLogged);
+  //  const socketRef = useRef(null);
+//    const socket = socketRef.current;
 
-    const setNewMsg = useMessageStore(state=>state.setNewMsg)
+    // handle connection first
 
     useEffect(()=>{
-        socketRef.current = socket
+        setSocket(io("http://localhost:8000"))
+    },[]) // useEffect will be trigged when socket or userCurrent change
 
-        // Handling connection errors
-        socketRef.current.on('connect_error',(err)=>handleError(err))
-        socketRef.current.on('connect_failed',(err)=>handleError(err))
 
-        const handleError = (err)=> {
-            console.log(err)
-        }
+    useEffect(() => {
+        if (!socket) return;
 
-        socketRef.current.on('connect', () => {
-            setConnected(true);
-            console.log('socket ref in hooks:',socketRef)
+        socket.on('connect', () => {
+            console.log('vo day connect')
+           // setSocketConnected(socket.connected);
+           // subscribeToDateEvent();
         });
-        socketRef.current.on('disconnect', () => {
-            setConnected(false);
+        socket.on('disconnect', () => {
+           // setSocketConnected(socket.connected);
         });
 
 
-        socketRef.current.on('message', function (msg) {
-            console.log('this is msg recieve real time:',msg)
-            setNewMsg(msg)
-        });
+
+    }, [socket]);
+
+    /*
+    useEffect(()=>{
+        console.log('useEffect 2 :',socket)
+        socket?.on("connect",()=>{
+            setConnected(true)
+        })
+    },[socketRef.current])
+    */
 
 
-        return () => {
-            if(socketRef.current){
-                socketRef.current.disconnect()
-                socketRef.current.off('connect')
-                socketRef.current.off('disconnect');
-            }
-
-        };
-    } ,[])
-
-
-    return [socketRef,connected];
+    return [socket,connected]
 }
-
 
 export default useSocket;
