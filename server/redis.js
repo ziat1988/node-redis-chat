@@ -55,7 +55,7 @@ const zadd= async function(key,score,value){
 
 // sorted set
 
-const zrangewithscore = async function(key, min=0, max=1){
+const zrangewithscore = async function(key, min, max){
     return client.zrange(key, min, max);
    // return await client.zRangeByScore(key, min, max)
 }

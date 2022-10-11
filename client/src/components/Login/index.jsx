@@ -19,18 +19,15 @@ function Index(props) {
     const setUser= useUserStore(state=>state.setUser);
     const setError = useAlertStore(state=>state.setError);
     const error = useAlertStore(state=>state.error);
-   // const navigate = useNavigate();
-
-    const userCurrent = useUserStore(state=>state.userLogged);
+    const navigate = useNavigate();
 
     const handleSubmit = (e)=>{
-        console.log('vo day')
         e.preventDefault();
 
         login(refUsername.current.value,refPassword.current.value)
             .then(res=>{
                 setUser(res.data)
-                //navigate("/chat")
+                navigate("/chat")
             })
             .catch(err=>{
                 console.log('error here', err)

@@ -18,6 +18,7 @@ const ChatWrapper = styled.div`
 function Index(props) {
     const userLogged = useUserStore(state=>state.userLogged)
     const [socket, setSocket] = useState(null);
+    const setUserLogged = useUserStore(state=>state.setUser);
     const [socketConnected, setSocketConnected] = useState(false);
     const{loading,error,response,get} = useFetch()
 
@@ -28,7 +29,20 @@ function Index(props) {
 
 
     useEffect(()=>{
+        if(userLogged) return;
+        const fetch = async ()=>{
+            const data = await get('/api/get-user-session')
+            console.log('data here:',data)
+            if(response.ok){
+                setUserLogged(data);
+            }
+        }
+        fetch();
+    },[])
 
+    //get room
+    useEffect(()=>{
+        if(!userLogged ) return;
         async function fetchData(){
             // get id user current  + id other user
             const data = await get(`/api/rooms/${userLogged.id}`);
@@ -41,19 +55,28 @@ function Index(props) {
 
     },[userLogged])
 
+    //get msg
     useEffect(()=>{
-        if(!roomCurrent) return;
-
+        if(!roomCurrent || !userLogged) return;
         async function fetchData(){
             // get id user current  + id other user
-            const data = await get(`/api/room/${roomCurrent}/messages`);
-            if(response.ok){
-                setMessages(data)
+            console.log('room current:',roomCurrent)
+
+            const data = await fetch(`/api/room/${roomCurrent}/messages`)
+
+           // const data = await get(`/api/room/${roomCurrent}/messages`,{cache:false});
+            console.log('data:',data,'userlogged:',userLogged)
+            if(data.status === 200){
+                const messages = await data.json();
+                setMessages(messages)
             }
+            // if(response.ok){
+            //     setMessages(data)
+            // }
         }
         fetchData();
 
-    },[roomCurrent])
+    },[roomCurrent,userLogged])
 
     useEffect(() => {
         setSocket(io('http://localhost:8000'));
@@ -73,7 +96,7 @@ function Index(props) {
             setSocketConnected(socket.connected);
         });
         socket.on('disconnect', () => {
-           setSocketConnected(socket.connected);
+            setSocketConnected(socket.connected);
         });
 
         socket.on('message',(msg)=>{
@@ -102,19 +125,22 @@ function Index(props) {
 
     return (
         <React.Fragment>
-                    <ChatWrapper>
-                        <div><b>Connection status:</b> {socketConnected ? socket.id + ' connected' : 'Disconnected'}</div>
-                        <Logout />
-                        <div className={'row'}>
-                            <div className={'col col-md-4'}>
-                                <ChatList chatList = {chatList} />
-                            </div>
-                            <div className={'col col-md-8'}>
-                                <ChatMessages messages= {messages} />
-                                <TypingArea socket={socket} roomCurrent={roomCurrent}/>
-                            </div>
+            {!userLogged ? <p>Loading ...</p> :
+                <ChatWrapper>
+                    <div><b>Connection status:</b> {socketConnected ? socket.id + ' connected' : 'Disconnected'}</div>
+                    <Logout />
+                    <div className={'row'}>
+                        <div className={'col col-md-4'}>
+                            <ChatList chatList = {chatList} />
                         </div>
-                    </ChatWrapper>
+                        <div className={'col col-md-8'}>
+                            <ChatMessages messages= {messages} />
+                            <TypingArea socket={socket} roomCurrent={roomCurrent}/>
+                        </div>
+                    </div>
+                </ChatWrapper>
+            }
+
 
         </React.Fragment>
     );

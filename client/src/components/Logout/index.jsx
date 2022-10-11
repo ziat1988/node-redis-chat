@@ -10,7 +10,7 @@ function Index(props) {
     const setUser = useUserStore(state=>state.setUser);
     const setRoomCurrent = useRoomStore(state=>state.setRoomCurrent)
 
-    //const navigate = useNavigate();
+    const navigate = useNavigate();
     const handleLogout = async(e)=>{
         //
         await post("/api/logout")
@@ -18,6 +18,7 @@ function Index(props) {
             console.log(" user has logout")
             setUser(null);
             setRoomCurrent(null);
+            navigate("/")
         }
     }
 

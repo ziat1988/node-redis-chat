@@ -8,6 +8,7 @@ import {SocketContext} from "../../../../context/socket.js";
 
 function ChatList({chatList}) {
     const userLogged = useUserStore(state=>state.userLogged);
+
     return (
         <div>
             <p>{userLogged.username}</p>

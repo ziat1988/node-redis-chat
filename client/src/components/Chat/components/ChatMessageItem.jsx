@@ -25,6 +25,7 @@ const getUserName=(id)=>{
 
 function ChatMessageItem({data,userLoggedId}) {
     const {from,message,roomId,date} = data;
+    //console.log('userLogged:',userLoggedId, 'from:',from)
     return (
         <React.Fragment>
             <ItemLi className={+from === +userLoggedId ? 'right' : 'left'}>
